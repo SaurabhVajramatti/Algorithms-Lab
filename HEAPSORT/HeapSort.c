@@ -1,9 +1,9 @@
 /******************************************************************************
-*File		: QuickSort.c
-*Description	: Program to sort an array using Quick Sort
+*File		: HeapSort.c
+*Description	: Program to sort an array using Heap Sort
 *Author		: Prabodh C P
 *Compiler	: gcc compiler 4.6.3, Ubuntu 12.04
-*Date		: 11 Nov 2013
+*Date		: Friday 22 November 2013 
 ******************************************************************************/
 
 #include <stdio.h>
@@ -13,25 +13,16 @@
 
 void fnGenRandInput(int [], int);
 void fnDispArray( int [], int);
-int fnPartition(int [], int , int );
-void fnQuickSort(int [], int , int );
-inline void fnSwap(int*, int*);
-
-
-inline void fnSwap(int *a, int *b)
-{
-	int t = *a; *a = *b; *b = t;
-}
+void fnMaxHeapify(int[],int,int);
+void fnBuildMaxHeap(int[],int);
+void fnHeapSort(int[],int);
 
 /******************************************************************************
 *Function	: main
-*Input parameters:
-*	int argc - no of commamd line arguments
-*	char **argv - vector to store command line argumennts
+*Input parameters: no parameters
 *RETURNS	:	0 on success
 ******************************************************************************/
-
-int main( int argc, char **argv)
+int main(void)
 {
 
 	FILE *fp;
@@ -41,14 +32,14 @@ int main( int argc, char **argv)
 
     for(;;)
     {
-        printf("\n1.Plot the Graph\n2.QuickSort\n3.Exit");
+        printf("\n1.Plot the Graph\n2.HeapSort\n3.Exit");
         printf("\nEnter your choice\n");
         scanf("%d",&iChoice);
 
         switch(iChoice)
         {
             case 1:
-                fp = fopen("QuickPlot.dat","w");
+                fp = fopen("HeapPlot.dat","w");
 
                 for(i=100;i<100000;i+=100)
                 {
@@ -56,8 +47,8 @@ int main( int argc, char **argv)
 
                     gettimeofday(&tv,NULL);
                     dStart = tv.tv_sec + (tv.tv_usec/1000000.0);
-
-                    fnQuickSort(iaArr,0,i-1);
+		    
+		    fnHeapSort(iaArr,i);
 
                     gettimeofday(&tv,NULL);
                     dEnd = tv.tv_sec + (tv.tv_usec/1000000.0);
@@ -67,7 +58,7 @@ int main( int argc, char **argv)
                 }
                 fclose(fp);
 
-                printf("\nData File generated and stored in file < QuickPlot.dat >.\n Use a plotting utility\n");
+                printf("\nData File generated and stored in file < HeapPlot.dat >.\n Use a plotting utility\n");
             break;
 
             case 2:
@@ -76,7 +67,7 @@ int main( int argc, char **argv)
                 printf("\nUnsorted Array\n");
                 fnGenRandInput(iaArr,iNum);
                 fnDispArray(iaArr,iNum);
-                fnQuickSort(iaArr,0,iNum-1);
+		fnHeapSort(iaArr,iNum);
                 printf("\nSorted Array\n");
                 fnDispArray(iaArr,iNum);
             break;
@@ -91,58 +82,70 @@ int main( int argc, char **argv)
 
 
 /******************************************************************************
-*Function	: fnPartition
-*Description	: Function to partition an iaArray using First element as Pivot
+*Function	: fnMaxHeapify
+*Description	: Function to recreate a max heap
 *Input parameters:
-*	int a[] - iaArray to hold integers
-*	int l	- start index of the subiaArray to be sorted
-*	int r	- end index of the subiaArray to be sorted
-*RETURNS	: integer value specifying the location of partition
-******************************************************************************/
-
-int fnPartition(int a[], int l, int r)
-{
-	int i,j,temp;
-	int p;
-
-	p = a[l];
-	i = l;
-	j = r+1;
-
-	do
-	{
-		do { i++; } while (a[i] < p);
-		do { j--; } while (a[j] > p);
-
-		fnSwap(&a[i], &a[j]);
-	}
-	while (i<j);
-
-	fnSwap(&a[i], &a[j]);
-	fnSwap(&a[l], &a[j]);
-
-	return j;
-}
-
-/******************************************************************************
-*Function	: fnQuickSort
-*Description	: Function to sort elements in an iaArray using Quick Sort
-*Input parameters:
-*	int a[] - iaArray to hold integers
-*	int l	- start index of the subiaArray to be sorted
-*	int r	- end index of the subiaArray to be sorted
+*	int a[] - Array to hold integers
+*	int i	- start index of the Array 
+*	int n	- end index of the Array 
 *RETURNS	: no value
 ******************************************************************************/
 
-void fnQuickSort(int a[], int l, int r)
+void fnMaxHeapify(int a[],int i,int n)
 {
-	int s;
-
-	if (l < r)
+	int l,r,largest,temp;
+	l=2*i;
+	r=(2*i)+1;
+	if((l<=n)&& (a[l]>a[i]))
 	{
-		s = fnPartition(a, l, r);
-		fnQuickSort(a, l, s-1);
-		fnQuickSort(a, s+1, r);
+		largest=l;
+	}
+	else
+	largest=i;
+	if((r<=n)&&(a[r]>a[largest]))
+	largest=r;
+	if(largest!=i)
+	{
+		temp=a[i];
+		a[i]=a[largest];
+		a[largest]=temp;
+		fnMaxHeapify(a,largest,n);
+	}
+}
+/******************************************************************************
+*Function	: fnBuildMaxHeap
+*Description	: Function to create a max heap
+*Input parameters:
+*	int a[] - Array to hold integers
+*	int n	- number of elements in the Array 
+*RETURNS	: no value
+******************************************************************************/
+
+void fnBuildMaxHeap(int a[],int n)
+{
+	int i;
+	for(i=n/2;i>=1;i--)
+	fnMaxHeapify(a,i,n);
+}
+
+/******************************************************************************
+*Function	: fnHeapSort
+*Description	: Function to sort an array using Heap Sort
+*Input parameters:
+*	int a[] - Array to hold integers
+*	int n	- number of elements in the Array 
+*RETURNS	: no value
+******************************************************************************/
+void fnHeapSort(int a[],int n)
+{
+	int temp,i;
+	fnBuildMaxHeap(a,n);
+	for(i=n;i>=2;i--)
+	{
+		temp=a[1];
+		a[1]=a[i];
+		a[i]=temp;
+		fnMaxHeapify(a,1,i-1);
 	}
 }
 
@@ -160,7 +163,7 @@ void fnGenRandInput(int X[], int n)
 	int i;
 
 	srand(time(NULL));
-	for(i=0;i<n;i++)
+	for(i=1;i<=n;i++)
 	{
 		X[i] = rand()%10000;
 	}
@@ -180,7 +183,7 @@ void fnDispArray( int X[], int n)
 {
 	int i;
 
-	for(i=0;i<n;i++)
+	for(i=1;i<=n;i++)
 		printf(" %5d \n",X[i]);
 
 }
